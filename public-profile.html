@@ -1,0 +1,1129 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Profile | BariraSocial</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Inter, Arial, sans-serif;
+            background:
+                radial-gradient(circle at 20% 10%, rgba(124, 58, 237, 0.18), transparent 30%),
+                radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.15), transparent 30%),
+                #070b14;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* =========================
+           NAVBAR
+        ========================== */
+
+        .navbar {
+            height: 70px;
+            padding: 0 6%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            position: sticky;
+            top: 0;
+            z-index: 100;
+
+            background: rgba(7, 11, 20, 0.82);
+            backdrop-filter: blur(18px);
+
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .logo {
+            font-size: 23px;
+            font-weight: 900;
+            letter-spacing: -1px;
+        }
+
+        .logo span {
+            color: #8b5cf6;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .nav-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+
+            cursor: pointer;
+            transition: 0.25s;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(139,92,246,0.2);
+            border-color: rgba(139,92,246,0.5);
+        }
+
+        /* =========================
+           PAGE
+        ========================== */
+
+        .page {
+            width: min(1000px, 94%);
+            margin: 35px auto 70px;
+        }
+
+        /* =========================
+           PROFILE CARD
+        ========================== */
+
+        .profile-card {
+            overflow: hidden;
+            border-radius: 24px;
+
+            background: rgba(15, 23, 42, 0.78);
+            border: 1px solid rgba(255,255,255,0.08);
+
+            box-shadow:
+                0 25px 80px rgba(0,0,0,0.35),
+                0 0 50px rgba(124,58,237,0.08);
+        }
+
+        .cover {
+            height: 230px;
+            position: relative;
+
+            background:
+                radial-gradient(circle at 15% 50%, rgba(139,92,246,0.9), transparent 30%),
+                radial-gradient(circle at 80% 20%, rgba(59,130,246,0.75), transparent 30%),
+                linear-gradient(135deg, #111827, #312e81, #0f172a);
+
+            overflow: hidden;
+        }
+
+        .cover::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+
+            background-image:
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+
+            background-size: 35px 35px;
+            transform: perspective(500px) rotateX(45deg) scale(1.5);
+            opacity: 0.3;
+        }
+
+        .cover::after {
+            content: "";
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+
+            right: -80px;
+            top: -130px;
+
+            background: rgba(255,255,255,0.08);
+            filter: blur(5px);
+        }
+
+        /* =========================
+           PROFILE INFO
+        ========================== */
+
+        .profile-info {
+            padding: 0 38px 35px;
+            position: relative;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            width: 125px;
+            height: 125px;
+            margin-top: -62px;
+        }
+
+        .avatar {
+            width: 125px;
+            height: 125px;
+
+            border-radius: 50%;
+
+            object-fit: cover;
+
+            background: #111827;
+
+            border: 6px solid #0f172a;
+
+            box-shadow:
+                0 10px 35px rgba(0,0,0,0.5),
+                0 0 30px rgba(139,92,246,0.25);
+        }
+
+        .online-dot {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+
+            right: 9px;
+            bottom: 10px;
+
+            border-radius: 50%;
+
+            background: #22c55e;
+            border: 3px solid #0f172a;
+        }
+
+        .profile-main {
+            margin-top: 18px;
+
+            display: flex;
+            justify-content: space-between;
+            gap: 25px;
+        }
+
+        .identity h1 {
+            font-size: 31px;
+            line-height: 1.1;
+            margin-bottom: 6px;
+        }
+
+        .username {
+            color: #9ca3af;
+            font-size: 15px;
+        }
+
+        .bio {
+            margin-top: 16px;
+            max-width: 650px;
+
+            color: #d1d5db;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        button {
+            font-family: inherit;
+        }
+
+        .follow-btn,
+        .edit-btn {
+            border: none;
+            padding: 12px 23px;
+            border-radius: 12px;
+
+            font-weight: 800;
+            cursor: pointer;
+
+            transition: 0.25s;
+        }
+
+        .follow-btn {
+            color: white;
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+
+            box-shadow: 0 10px 30px rgba(124,58,237,0.25);
+        }
+
+        .follow-btn:hover,
+        .edit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .follow-btn.following {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: none;
+        }
+
+        .edit-btn {
+            background: rgba(255,255,255,0.07);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* =========================
+           STATS
+        ========================== */
+
+        .stats {
+            display: flex;
+            gap: 40px;
+
+            margin-top: 28px;
+            padding-top: 22px;
+
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .stat {
+            text-align: left;
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 21px;
+        }
+
+        .stat span {
+            color: #9ca3af;
+            font-size: 13px;
+        }
+
+        /* =========================
+           POSTS SECTION
+        ========================== */
+
+        .section-title {
+            margin: 35px 0 18px;
+
+            font-size: 20px;
+            font-weight: 900;
+        }
+
+        .posts {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .post {
+            background: rgba(15,23,42,0.8);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px;
+
+            padding: 22px;
+
+            transition: 0.25s;
+        }
+
+        .post:hover {
+            transform: translateY(-3px);
+            border-color: rgba(139,92,246,0.3);
+        }
+
+        .post-text {
+            color: #e5e7eb;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .post-image {
+            width: 100%;
+            max-height: 380px;
+            object-fit: cover;
+
+            margin-top: 15px;
+            border-radius: 13px;
+        }
+
+        .post-date {
+            margin-top: 15px;
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+        .empty {
+            padding: 45px 20px;
+            text-align: center;
+
+            border-radius: 18px;
+
+            background: rgba(15,23,42,0.7);
+            border: 1px dashed rgba(255,255,255,0.12);
+
+            color: #9ca3af;
+        }
+
+        /* =========================
+           LOADING
+        ========================== */
+
+        .loading {
+            text-align: center;
+            padding: 100px 20px;
+            color: #9ca3af;
+        }
+
+        .loader {
+            width: 42px;
+            height: 42px;
+
+            margin: 0 auto 15px;
+
+            border: 4px solid rgba(255,255,255,0.08);
+            border-top-color: #8b5cf6;
+
+            border-radius: 50%;
+
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* =========================
+           TOAST
+        ========================== */
+
+        .toast {
+            position: fixed;
+
+            left: 50%;
+            bottom: 30px;
+
+            transform: translate(-50%, 100px);
+
+            background: #111827;
+            border: 1px solid rgba(255,255,255,0.1);
+
+            padding: 13px 20px;
+            border-radius: 12px;
+
+            opacity: 0;
+
+            transition: 0.3s;
+
+            z-index: 999;
+        }
+
+        .toast.show {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================== */
+
+        @media (max-width: 700px) {
+
+            .navbar {
+                padding: 0 4%;
+            }
+
+            .page {
+                width: 96%;
+                margin-top: 20px;
+            }
+
+            .cover {
+                height: 175px;
+            }
+
+            .profile-info {
+                padding: 0 20px 28px;
+            }
+
+            .avatar-wrapper {
+                width: 105px;
+                height: 105px;
+                margin-top: -52px;
+            }
+
+            .avatar {
+                width: 105px;
+                height: 105px;
+            }
+
+            .profile-main {
+                display: block;
+            }
+
+            .identity h1 {
+                font-size: 26px;
+            }
+
+            .actions {
+                margin-top: 20px;
+            }
+
+            .follow-btn,
+            .edit-btn {
+                flex: 1;
+            }
+
+            .stats {
+                gap: 25px;
+            }
+
+            .posts {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+
+        <a href="index.html" class="logo">
+            Barira<span>Social</span>
+        </a>
+
+        <div class="nav-actions">
+
+            <a href="index.html" class="nav-btn" title="Home">
+                🏠
+            </a>
+
+            <button class="nav-btn" onclick="logout()" title="Logout">
+                ↪
+            </button>
+
+        </div>
+
+    </nav>
+
+
+    <!-- PAGE -->
+    <main class="page">
+
+        <div id="loading" class="loading">
+            <div class="loader"></div>
+            Loading profile...
+        </div>
+
+
+        <section id="profileCard" class="profile-card" style="display:none;">
+
+            <!-- COVER -->
+            <div class="cover"></div>
+
+
+            <!-- PROFILE INFORMATION -->
+            <div class="profile-info">
+
+                <div class="avatar-wrapper">
+
+                    <img
+                        id="profileImage"
+                        class="avatar"
+                        src=""
+                        alt="Profile">
+
+
+                </div>
+
+
+                <div class="profile-main">
+
+                    <div class="identity">
+
+                        <h1 id="profileName">
+                            User
+                        </h1>
+
+                        <div
+                            id="profileUsername"
+                            class="username">
+                            @username
+                        </div>
+
+                        <p
+                            id="profileBio"
+                            class="bio">
+                        </p>
+
+                    </div>
+
+
+                    <div class="actions">
+
+                        <button
+                            id="followButton"
+                            class="follow-btn"
+                            onclick="toggleFollow()">
+                            Follow
+                        </button>
+
+                        <button
+                            id="editButton"
+                            class="edit-btn"
+                            onclick="editProfile()"
+                            style="display:none;">
+                            Edit Profile
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- STATS -->
+                <div class="stats">
+
+                    <div class="stat">
+                        <strong id="postCount">0</strong>
+                        <span>Posts</span>
+                    </div>
+
+                    <div class="stat">
+                        <strong id="followerCount">0</strong>
+                        <span>Followers</span>
+                    </div>
+
+                    <div class="stat">
+                        <strong id="followingCount">0</strong>
+                        <span>Following</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- POSTS -->
+        <h2
+            id="postsTitle"
+            class="section-title"
+            style="display:none;">
+            Posts
+        </h2>
+
+        <section
+            id="postsContainer"
+            class="posts">
+        </section>
+
+    </main>
+
+
+    <div id="toast" class="toast"></div>
+
+
+<script>
+
+    // =====================================================
+    // GET USER ID FROM URL
+    // Example:
+    // public-profile.html?user=2
+    // =====================================================
+
+    const params = new URLSearchParams(window.location.search);
+
+    const userId = params.get("user");
+
+
+    // =====================================================
+    // ELEMENTS
+    // =====================================================
+
+    const loading = document.getElementById("loading");
+    const profileCard = document.getElementById("profileCard");
+
+    const profileImage = document.getElementById("profileImage");
+    const profileName = document.getElementById("profileName");
+    const profileUsername = document.getElementById("profileUsername");
+    const profileBio = document.getElementById("profileBio");
+
+    const postCount = document.getElementById("postCount");
+    const followerCount = document.getElementById("followerCount");
+    const followingCount = document.getElementById("followingCount");
+
+    const followButton = document.getElementById("followButton");
+    const editButton = document.getElementById("editButton");
+
+    const postsContainer = document.getElementById("postsContainer");
+    const postsTitle = document.getElementById("postsTitle");
+
+
+    // =====================================================
+    // LOAD PROFILE
+    // =====================================================
+
+    async function loadProfile() {
+
+        if (!userId) {
+
+            showError("No user profile selected.");
+            return;
+        }
+
+        try {
+
+            const response = await fetch(
+                `/api/users/${userId}/profile`,
+                {
+                    credentials: "include"
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+
+                showError(
+                    data.message ||
+                    "Unable to load profile."
+                );
+
+                return;
+            }
+
+
+            // -----------------------------
+            // PROFILE INFORMATION
+            // -----------------------------
+
+            profileName.textContent =
+                data.user.name || "User";
+
+            profileUsername.textContent =
+                "@" + (data.user.username || "user");
+
+
+            profileBio.textContent =
+                data.user.bio ||
+                "No bio added yet.";
+
+
+            // -----------------------------
+            // PROFILE IMAGE
+            // -----------------------------
+
+            if (data.user.profile_image) {
+
+                profileImage.src =
+                    data.user.profile_image;
+
+            } else {
+
+                profileImage.src =
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        data.user.name || "User"
+                    )}&background=312e81&color=fff&size=300`;
+            }
+
+
+            // -----------------------------
+            // STATS
+            // -----------------------------
+
+            postCount.textContent =
+                data.stats.posts;
+
+            followerCount.textContent =
+                data.stats.followers;
+
+            followingCount.textContent =
+                data.stats.following;
+
+
+            // -----------------------------
+            // OWN PROFILE
+            // -----------------------------
+
+            if (data.isOwnProfile) {
+
+                followButton.style.display = "none";
+
+                editButton.style.display = "block";
+
+            } else {
+
+                followButton.style.display = "block";
+
+                editButton.style.display = "none";
+
+
+                updateFollowButton(
+                    data.following
+                );
+            }
+
+
+            profileCard.style.display = "block";
+
+            loading.style.display = "none";
+
+
+            // -----------------------------
+            // LOAD POSTS
+            // -----------------------------
+
+            await loadUserPosts();
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            showError(
+                "Cannot connect to BariraSocial server."
+            );
+        }
+    }
+
+
+    // =====================================================
+    // LOAD USER POSTS
+    // =====================================================
+
+    async function loadUserPosts() {
+
+        try {
+
+            const response = await fetch(
+                "/api/posts",
+                {
+                    credentials: "include"
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                return;
+            }
+
+
+            const userPosts =
+                data.posts.filter(
+                    post =>
+                        Number(post.user_id) ===
+                        Number(userId)
+                );
+
+
+            postsTitle.style.display = "block";
+
+
+            if (userPosts.length === 0) {
+
+                postsContainer.innerHTML = `
+                    <div class="empty">
+                        <div style="font-size:35px;margin-bottom:10px;">
+                            📝
+                        </div>
+
+                        <strong>No posts yet</strong>
+
+                        <div style="margin-top:6px;">
+                            This user hasn't shared anything yet.
+                        </div>
+                    </div>
+                `;
+
+                return;
+            }
+
+
+            postsContainer.innerHTML =
+                userPosts.map(post => {
+
+                    const image =
+                        post.image
+                            ? `
+                                <img
+                                    class="post-image"
+                                   src="${escapeHTML(post.image)}"
+                                     alt="Post image">
+                              `
+                            : "";
+
+
+                    const date =
+                        post.created_at
+                            ? new Date(
+                                post.created_at
+                            ).toLocaleString()
+                            : "";
+
+
+                    return `
+
+                        <article class="post">
+
+                            <div class="post-text">
+                                ${escapeHTML(
+                                    post.content || ""
+                                )}
+                            </div>
+
+                            ${image}
+
+                            <div class="post-date">
+                                ${date}
+                            </div>
+
+                        </article>
+
+                    `;
+
+                }).join("");
+
+
+        } catch (error) {
+
+            console.error(
+                "Posts error:",
+                error
+            );
+
+        }
+    }
+
+
+    // =====================================================
+    // FOLLOW / UNFOLLOW
+    // =====================================================
+
+    async function toggleFollow() {
+
+        try {
+
+            followButton.disabled = true;
+
+
+            const response = await fetch(
+                `/api/users/${userId}/follow`,
+                {
+                    method: "POST",
+                    credentials: "include"
+                }
+            );
+
+
+            const data = await response.json();
+
+
+            if (!response.ok || !data.success) {
+
+                showToast(
+                    data.message ||
+                    "Unable to update follow."
+                );
+
+                return;
+            }
+
+
+            // Reload profile so follower count
+            // and follow status stay accurate.
+
+            await loadProfile();
+
+
+            showToast(
+                data.following
+                    ? "Following user 🎉"
+                    : "Unfollowed user"
+            );
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            showToast(
+                "Something went wrong."
+            );
+
+        } finally {
+
+            followButton.disabled = false;
+
+        }
+    }
+
+
+    // =====================================================
+    // FOLLOW BUTTON UI
+    // =====================================================
+
+    function updateFollowButton(following) {
+
+        if (following) {
+
+            followButton.textContent =
+                "Following ✓";
+
+            followButton.classList.add(
+                "following"
+            );
+
+        } else {
+
+            followButton.textContent =
+                "Follow +";
+
+            followButton.classList.remove(
+                "following"
+            );
+        }
+    }
+
+
+    // =====================================================
+    // EDIT PROFILE
+    // =====================================================
+
+    function editProfile() {
+
+        window.location.href =
+            "profile.html";
+
+    }
+
+
+    // =====================================================
+    // LOGOUT
+    // =====================================================
+
+    async function logout() {
+
+        try {
+
+            await fetch(
+                "/api/logout",
+                {
+                    method: "POST",
+                    credentials: "include"
+                }
+            );
+
+            window.location.href =
+                "index.html";
+
+        } catch (error) {
+
+            console.error(error);
+
+            window.location.href =
+                "index.html";
+        }
+    }
+
+
+    // =====================================================
+    // ESCAPE HTML
+    // =====================================================
+
+    function escapeHTML(value) {
+
+        const div =
+            document.createElement("div");
+
+        div.textContent =
+            value;
+
+        return div.innerHTML;
+    }
+
+
+    // =====================================================
+    // TOAST
+    // =====================================================
+
+    function showToast(message) {
+
+        const toast =
+            document.getElementById("toast");
+
+        toast.textContent =
+            message;
+
+        toast.classList.add("show");
+
+
+        setTimeout(() => {
+
+            toast.classList.remove("show");
+
+        }, 2500);
+    }
+
+
+    // =====================================================
+    // ERROR
+    // =====================================================
+
+    function showError(message) {
+
+        loading.innerHTML = `
+
+            <div style="
+                font-size:45px;
+                margin-bottom:15px;
+            ">
+                😕
+            </div>
+
+            <strong style="
+                display:block;
+                color:white;
+                font-size:20px;
+                margin-bottom:8px;
+            ">
+                ${escapeHTML(message)}
+            </strong>
+
+            <a
+                href="index.html"
+                style="
+                    display:inline-block;
+                    margin-top:15px;
+                    padding:11px 20px;
+                    background:#7c3aed;
+                    border-radius:10px;
+                    font-weight:700;
+                ">
+                Back Home
+            </a>
+
+        `;
+    }
+
+
+    // =====================================================
+    // START
+    // =====================================================
+
+    loadProfile();
+
+</script>
+
+</body>
+</html>
+```

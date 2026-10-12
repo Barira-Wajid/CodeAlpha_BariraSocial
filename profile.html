@@ -1,0 +1,1093 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Profile | BariraSocial</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+
+            background:
+                radial-gradient(circle at top left, #4c1d95, transparent 35%),
+                radial-gradient(circle at bottom right, #1e3a8a, transparent 35%),
+                #080812;
+
+            color: white;
+        }
+
+        /* ==============================
+           NAVBAR
+        ============================== */
+
+        nav {
+            height: 70px;
+            padding: 0 7%;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            background: rgba(10, 10, 25, 0.75);
+            backdrop-filter: blur(15px);
+
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+
+            background: linear-gradient(90deg, #a855f7, #60a5fa);
+
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #ddd;
+
+            padding: 10px 16px;
+            border-radius: 10px;
+
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover {
+            background: rgba(168, 85, 247, 0.15);
+            color: white;
+        }
+
+        /* ==============================
+           CONTAINER
+        ============================== */
+
+        .container {
+            width: 90%;
+            max-width: 900px;
+
+            margin: 60px auto;
+        }
+
+        /* ==============================
+           PROFILE CARD
+        ============================== */
+
+        .profile-card {
+            padding: 40px;
+
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
+
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+        }
+
+        .profile-top {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        /* ==============================
+           AVATAR
+        ============================== */
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 45px;
+            font-weight: bold;
+
+            background: linear-gradient(135deg, #7c3aed, #2563eb);
+
+            border: 4px solid rgba(255, 255, 255, 0.15);
+
+            box-shadow:
+                0 10px 35px rgba(124, 58, 237, 0.4);
+
+            overflow: hidden;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
+        }
+
+        /* ==============================
+           PROFILE INFO
+        ============================== */
+
+        .profile-info h1 {
+            font-size: 32px;
+            margin-bottom: 7px;
+        }
+
+        .username {
+            color: #a78bfa;
+            font-size: 17px;
+        }
+
+        .email {
+            color: #aaa;
+            margin-top: 8px;
+        }
+
+        /* ==============================
+           STATS
+        ============================== */
+
+        .stats {
+            display: flex;
+            gap: 50px;
+
+            margin-top: 35px;
+            padding: 25px 0;
+
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            color: #aaa;
+
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
+        /* ==============================
+           BIO
+        ============================== */
+
+        .bio-section {
+            margin-top: 30px;
+        }
+
+        .bio-section h2 {
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        #bio {
+            color: #bbb;
+            line-height: 1.6;
+        }
+
+        /* ==============================
+           ACTIONS
+        ============================== */
+
+        .actions {
+            margin-top: 30px;
+
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            border: none;
+
+            padding: 13px 25px;
+            border-radius: 12px;
+
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            background: linear-gradient(
+                90deg,
+                #7c3aed,
+                #2563eb
+            );
+
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 10px 30px rgba(124, 58, 237, 0.4);
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.08);
+        }
+
+        #message {
+            text-align: center;
+
+            margin-bottom: 20px;
+
+            color: #a78bfa;
+        }
+
+        /* ==============================
+           MODAL
+        ============================== */
+
+        .modal {
+            display: none;
+
+            position: fixed;
+            inset: 0;
+
+            background: rgba(0, 0, 0, 0.78);
+
+            align-items: center;
+            justify-content: center;
+
+            z-index: 9999;
+
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            width: 100%;
+            max-width: 500px;
+
+            padding: 30px;
+
+            border-radius: 20px;
+
+            background: #111827;
+
+            position: relative;
+
+            box-shadow:
+                0 20px 60px rgba(0,0,0,.6);
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+        }
+
+        .modal-content label {
+            display: block;
+
+            margin-top: 15px;
+            margin-bottom: 7px;
+
+            color: #ddd;
+        }
+
+        .modal-content input,
+        .modal-content textarea {
+
+            width: 100%;
+
+            padding: 12px;
+
+            border-radius: 10px;
+
+            border: 1px solid #374151;
+
+            background: #1f2937;
+
+            color: white;
+
+            outline: none;
+        }
+
+        .modal-content input:focus,
+        .modal-content textarea:focus {
+            border-color: #8b5cf6;
+        }
+
+        .close-modal {
+
+            position: absolute;
+
+            right: 15px;
+            top: 10px;
+
+            background: transparent;
+
+            border: none;
+
+            color: white;
+
+            font-size: 30px;
+
+            padding: 5px 10px;
+        }
+
+        .close-modal:hover {
+            box-shadow: none;
+            transform: none;
+        }
+
+        .save-profile-btn {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        #profileImagePreview {
+            margin-top: 10px;
+        }
+
+        #profileImagePreview img {
+
+            width: 90px;
+            height: 90px;
+
+            object-fit: cover;
+
+            border-radius: 50%;
+
+            border: 3px solid #7c3aed;
+        }
+
+        /* ==============================
+           MOBILE
+        ============================== */
+
+        @media (max-width: 600px) {
+
+            nav {
+                padding: 0 5%;
+            }
+
+            .nav-links a {
+                padding: 8px;
+            }
+
+            .container {
+                width: 94%;
+                margin: 30px auto;
+            }
+
+            .profile-card {
+                padding: 25px;
+            }
+
+            .profile-top {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .stats {
+                justify-content: space-between;
+                gap: 10px;
+            }
+
+            .stat-number {
+                font-size: 21px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <!-- ==============================
+         NAVBAR
+    ============================== -->
+
+    <nav>
+
+        <div class="logo">
+            BariraSocial
+        </div>
+
+        <div class="nav-links">
+
+            <a href="index.html">
+                Home
+            </a>
+
+            <a href="profile.html">
+                Profile
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <!-- ==============================
+         MAIN
+    ============================== -->
+
+    <main class="container">
+
+        <div id="message">
+            Loading profile...
+        </div>
+
+
+        <section class="profile-card">
+
+            <div class="profile-top">
+
+                <div class="avatar" id="avatar">
+                    B
+                </div>
+
+
+                <div class="profile-info">
+
+                    <h1 id="name">
+                        Loading...
+                    </h1>
+
+                    <div
+                        class="username"
+                        id="username"
+                    >
+                        @username
+                    </div>
+
+                    <div
+                        class="email"
+                        id="email"
+                    >
+                        email@example.com
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ==============================
+                 STATS
+            ============================== -->
+
+            <div class="stats">
+
+                <div class="stat">
+
+                    <div
+                        class="stat-number"
+                        id="posts"
+                    >
+                        0
+                    </div>
+
+                    <div class="stat-label">
+                        Posts
+                    </div>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <div
+                        class="stat-number"
+                        id="followers"
+                    >
+                        0
+                    </div>
+
+                    <div class="stat-label">
+                        Followers
+                    </div>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <div
+                        class="stat-number"
+                        id="following"
+                    >
+                        0
+                    </div>
+
+                    <div class="stat-label">
+                        Following
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ==============================
+                 ABOUT ME
+            ============================== -->
+
+            <section class="bio-section">
+
+                <h2>
+                    About Me
+                </h2>
+
+                <p id="bio">
+                    No bio added yet.
+                </p>
+
+            </section>
+
+
+            <!-- ==============================
+                 ACTIONS
+            ============================== -->
+
+            <div class="actions">
+
+                <button
+                    onclick="openEditProfile()"
+                >
+                    ✏️ Edit Profile
+                </button>
+
+                <button
+                    class="logout-btn"
+                    onclick="logout()"
+                >
+                    Logout
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- ==============================
+         EDIT PROFILE MODAL
+    ============================== -->
+
+    <div
+        id="editProfileModal"
+        class="modal"
+    >
+
+        <div class="modal-content">
+
+            <button
+                class="close-modal"
+                onclick="closeEditProfile()"
+            >
+                ×
+            </button>
+
+
+            <h2>
+                ✏️ Edit Profile
+            </h2>
+
+
+            <form
+                id="editProfileForm"
+                enctype="multipart/form-data"
+            >
+
+                <label>
+                    Name
+                </label>
+
+                <input
+                    type="text"
+                    id="editName"
+                    name="name"
+                    required
+                >
+
+
+                <label>
+                    Username
+                </label>
+
+                <input
+                    type="text"
+                    id="editUsername"
+                    name="username"
+                    required
+                >
+
+
+                <label>
+                    Bio
+                </label>
+
+                <textarea
+                    id="editBio"
+                    name="bio"
+                    rows="4"
+                    placeholder="Tell people about yourself..."
+                ></textarea>
+
+
+                <label>
+                    Profile Picture
+                </label>
+
+                <input
+                    type="file"
+                    id="editProfileImage"
+                    name="profile_image"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                >
+
+
+                <div id="profileImagePreview"></div>
+
+
+                <button
+                    type="submit"
+                    class="save-profile-btn"
+                >
+                    💾 Save Changes
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==============================
+         JAVASCRIPT
+    ============================== -->
+
+    <script>
+
+        // ==========================================
+        // LOAD PROFILE
+        // ==========================================
+
+        async function loadProfile() {
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/profile",
+                        {
+                            credentials: "include"
+                        }
+                    );
+
+                const data =
+                    await response.json();
+
+
+                if (!data.success) {
+
+                    document.getElementById(
+                        "message"
+                    ).textContent =
+                        data.message;
+
+                    setTimeout(() => {
+
+                        window.location.href =
+                            "login.html";
+
+                    }, 1500);
+
+                    return;
+                }
+
+
+                const profile =
+                    data.profile;
+
+
+                // Basic information
+
+                document.getElementById(
+                    "name"
+                ).textContent =
+                    profile.name;
+
+
+                document.getElementById(
+                    "username"
+                ).textContent =
+                    "@" + profile.username;
+
+
+                document.getElementById(
+                    "email"
+                ).textContent =
+                    profile.email;
+
+
+                // Stats
+
+                document.getElementById(
+                    "posts"
+                ).textContent =
+                    profile.posts;
+
+
+                document.getElementById(
+                    "followers"
+                ).textContent =
+                    profile.followers;
+
+
+                document.getElementById(
+                    "following"
+                ).textContent =
+                    profile.following;
+
+
+                // Bio
+
+                document.getElementById(
+                    "bio"
+                ).textContent =
+                    profile.bio ||
+                    "No bio added yet.";
+
+
+                // Avatar
+
+                const avatar =
+                    document.getElementById(
+                        "avatar"
+                    );
+
+
+                if (profile.profile_image) {
+
+                    avatar.innerHTML = `
+                        <img
+                            src="${profile.profile_image}"
+                            alt="Profile"
+                        >
+                    `;
+
+                } else {
+
+                    avatar.textContent =
+                        profile.name
+                            .charAt(0)
+                            .toUpperCase();
+
+                }
+
+
+                document.getElementById(
+                    "message"
+                ).textContent = "";
+
+
+            } catch (error) {
+
+                console.error(
+                    error
+                );
+
+                document.getElementById(
+                    "message"
+                ).textContent =
+                    "Unable to connect to server.";
+
+            }
+
+        }
+
+
+        // ==========================================
+        // OPEN EDIT PROFILE
+        // ==========================================
+
+        function openEditProfile() {
+
+            document.getElementById(
+                "editName"
+            ).value =
+                document.getElementById(
+                    "name"
+                ).textContent.trim();
+
+
+            document.getElementById(
+                "editUsername"
+            ).value =
+                document.getElementById(
+                    "username"
+                ).textContent
+                    .replace("@", "")
+                    .trim();
+
+
+            const currentBio =
+                document.getElementById(
+                    "bio"
+                ).textContent.trim();
+
+
+            document.getElementById(
+                "editBio"
+            ).value =
+                currentBio ===
+                "No bio added yet."
+                    ? ""
+                    : currentBio;
+
+
+            document.getElementById(
+                "editProfileModal"
+            ).classList.add("show");
+
+        }
+
+
+        // ==========================================
+        // CLOSE MODAL
+        // ==========================================
+
+        function closeEditProfile() {
+
+            document.getElementById(
+                "editProfileModal"
+            ).classList.remove("show");
+
+        }
+
+
+        // ==========================================
+        // IMAGE PREVIEW
+        // ==========================================
+
+        document.getElementById(
+            "editProfileImage"
+        ).addEventListener(
+            "change",
+            function () {
+
+                const file =
+                    this.files[0];
+
+
+                if (!file) {
+                    return;
+                }
+
+
+                if (
+                    file.size >
+                    5 * 1024 * 1024
+                ) {
+
+                    alert(
+                        "Image must be smaller than 5MB."
+                    );
+
+                    this.value = "";
+
+                    return;
+                }
+
+
+                const reader =
+                    new FileReader();
+
+
+                reader.onload =
+                    function (event) {
+
+                        document.getElementById(
+                            "profileImagePreview"
+                        ).innerHTML = `
+
+                            <img
+                                src="${event.target.result}"
+                                alt="Preview"
+                            >
+
+                        `;
+
+                    };
+
+
+                reader.readAsDataURL(
+                    file
+                );
+
+            }
+        );
+
+
+        // ==========================================
+        // SAVE PROFILE
+        // ==========================================
+
+        document.getElementById(
+            "editProfileForm"
+        ).addEventListener(
+            "submit",
+            async function (event) {
+
+                event.preventDefault();
+
+
+                const formData =
+                    new FormData(this);
+
+
+                try {
+
+                    const response =
+                        await fetch(
+                            "/api/profile",
+                            {
+                                method: "PUT",
+
+                                credentials:
+                                    "include",
+
+                                body:
+                                    formData
+                            }
+                        );
+
+
+                    const data =
+                        await response.json();
+
+
+                    if (!data.success) {
+
+                        alert(
+                            data.message ||
+                            "Failed to update profile."
+                        );
+
+                        return;
+                    }
+
+
+                    alert(
+                        "Profile updated successfully! 🎉"
+                    );
+
+
+                    closeEditProfile();
+
+
+                    location.reload();
+
+
+                } catch (error) {
+
+                    console.error(
+                        "Profile update error:",
+                        error
+                    );
+
+                    alert(
+                        "Could not connect to server."
+                    );
+
+                }
+
+            }
+        );
+
+
+        // ==========================================
+        // LOGOUT
+        // ==========================================
+
+        async function logout() {
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/logout",
+                        {
+                            method: "POST",
+
+                            credentials:
+                                "include"
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (data.success) {
+
+                    window.location.href =
+                        "login.html";
+
+                }
+
+            } catch (error) {
+
+                console.error(
+                    error
+                );
+
+            }
+
+        }
+
+
+        // ==========================================
+        // START
+        // ==========================================
+
+        loadProfile();
+
+    </script>
+
+</body>
+
+</html>
+```

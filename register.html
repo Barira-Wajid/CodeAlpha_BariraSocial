@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Register | BariraSocial</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            font-family: Arial, sans-serif;
+
+            background:
+                radial-gradient(circle at top left, #4c1d95, transparent 35%),
+                radial-gradient(circle at bottom right, #0e7490, transparent 35%),
+                #080b16;
+
+            color: white;
+        }
+
+        .register-container {
+            width: 420px;
+            max-width: 92%;
+
+            padding: 35px;
+
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(18px);
+
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 22px;
+
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .logo {
+            text-align: center;
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 8px;
+
+            background: linear-gradient(90deg, #a78bfa, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 28px;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 14px;
+            color: #ddd;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px 15px;
+
+            border: 1px solid #333;
+            border-radius: 10px;
+
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+
+            outline: none;
+            font-size: 15px;
+        }
+
+        input:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.25);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+
+            border: none;
+            border-radius: 10px;
+
+            background: linear-gradient(90deg, #7c3aed, #0891b2);
+
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            margin-top: 8px;
+
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #message {
+            margin-top: 18px;
+            text-align: center;
+            font-size: 14px;
+            min-height: 20px;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 22px;
+            color: #aaa;
+        }
+
+        .login-link a {
+            color: #22d3ee;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="register-container">
+
+        <div class="logo">
+            BariraSocial
+        </div>
+
+        <p class="subtitle">
+            Create your account 🚀
+        </p>
+
+        <form id="registerForm">
+
+            <div class="input-group">
+                <label for="name">Full Name</label>
+
+                <input
+                    type="text"
+                    id="name"
+                    placeholder="Enter your name"
+                    required
+                >
+            </div>
+
+            <div class="input-group">
+                <label for="username">Username</label>
+
+                <input
+                    type="text"
+                    id="username"
+                    placeholder="Choose a username"
+                    required
+                >
+            </div>
+
+            <div class="input-group">
+                <label for="email">Email</label>
+
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="Enter your email"
+                    required
+                >
+            </div>
+
+            <div class="input-group">
+                <label for="password">Password</label>
+
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="Create a password"
+                    required
+                    minlength="6"
+                >
+            </div>
+
+            <button type="submit" id="registerBtn">
+                Create Account
+            </button>
+
+        </form>
+
+        <div id="message"></div>
+
+        <div class="login-link">
+            Already have an account?
+            <a href="login.html">Login</a>
+        </div>
+
+    </div>
+
+    <script>
+        const registerForm = document.getElementById("registerForm");
+        const message = document.getElementById("message");
+        const registerBtn = document.getElementById("registerBtn");
+
+        registerForm.addEventListener("submit", async function (event) {
+
+            event.preventDefault();
+
+            const name = document.getElementById("name").value.trim();
+            const username = document.getElementById("username").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value;
+
+            message.textContent = "Creating your account...";
+            message.style.color = "#facc15";
+
+            registerBtn.disabled = true;
+
+            try {
+
+                const response = await fetch("/api/register", {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        name,
+                        username,
+                        email,
+                        password
+                    })
+
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+
+                    message.textContent = data.message;
+                    message.style.color = "#4ade80";
+
+                    registerForm.reset();
+
+                    setTimeout(() => {
+                        window.location.href = "login.html";
+                    }, 1500);
+
+                } else {
+
+                    message.textContent =
+                        data.message || "Registration failed.";
+
+                    message.style.color = "#f87171";
+
+                    registerBtn.disabled = false;
+                }
+
+            } catch (error) {
+
+                console.error(error);
+
+                message.textContent =
+                    "Cannot connect to server.";
+
+                message.style.color = "#f87171";
+
+                registerBtn.disabled = false;
+            }
+
+        });
+    </script>
+
+</body>
+</html>
