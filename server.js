@@ -1,6 +1,8 @@
 const rateLimit = require("express-rate-limit");
 require("dotenv").config();
 const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
 const session = require("express-session");
 const multer = require("multer");
 const path = require("path");
@@ -15,7 +17,11 @@ const {
 
 
 const app = express();
+// ========================================
+// SOCKET.IO INSTANCE
+// ========================================
 
+let io = null;
 // ========================================
 // CREATE NOTIFICATION HELPER
 // ========================================
@@ -55,28 +61,27 @@ if (!process.env.SESSION_SECRET) {
 // SESSION
 // ========================================
 
-app.use(
-    session({
+const sessionMiddleware = session({
 
-        secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET,
 
-        resave: false,
+    resave: false,
 
-        saveUninitialized: false,
+    saveUninitialized: false,
 
-        cookie: {
+    cookie: {
 
-            maxAge: 1000 * 60 * 60 * 24,
+        maxAge: 1000 * 60 * 60 * 24,
 
-            httpOnly: true,
+        httpOnly: true,
 
-            sameSite: "lax"
+        sameSite: "lax"
 
-        }
+    }
 
-    })
-);
+});
 
+app.use(sessionMiddleware);
 
 // ========================================
 // STATIC FILES
@@ -2057,14 +2062,750 @@ app.patch("/api/notifications/read-all", (req, res) => {
     );
 
 });
+
 // ======================================================
-// SERVER START
+// BARIRASOCIAL — PRIVATE MESSAGING API
 // ======================================================
 
-app.listen(3000, () => {
+
+// GET ALL CONVERSATIONS
+app.get("/api/messages/conversations", async (req, res) => {
+
+    if (!req.session.user) {
+        return res.status(401).json({
+            success: false,
+            message: "Please login first."
+        });
+    }
+
+    const userId = Number(req.session.user.id);
+
+    try {
+
+        const [conversations] = await db.promise().query(
+            `
+            SELECT
+                u.id AS user_id,
+                u.name,
+                u.username,
+                u.profile_image,
+
+                m.message AS last_message,
+                m.created_at AS last_message_at,
+
+                (
+                    SELECT COUNT(*)
+                    FROM messages unread
+                    WHERE unread.sender_id = u.id
+                    AND unread.receiver_id = ?
+                    AND unread.is_read = 0
+                ) AS unread_count
+
+            FROM (
+                SELECT
+                    CASE
+                        WHEN sender_id = ? THEN receiver_id
+                        ELSE sender_id
+                    END AS other_id,
+                    MAX(id) AS last_message_id
+
+                FROM messages
+
+                WHERE sender_id = ?
+                   OR receiver_id = ?
+
+                GROUP BY other_id
+            ) conversations
+
+            INNER JOIN messages m
+                ON m.id = conversations.last_message_id
+
+            INNER JOIN users u
+                ON u.id = conversations.other_id
+
+            ORDER BY m.created_at DESC
+            `,
+            [userId, userId, userId, userId]
+        );
+
+        res.json({
+            success: true,
+            conversations
+        });
+
+    } catch (error) {
+
+        console.error("Conversations error:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Could not load conversations."
+        });
+
+    }
+
+});
+
+app.get("/api/messages/unread-count", async (req, res) => {
+
+    if (!req.session.user) {
+        return res.status(401).json({
+            success: false,
+            message: "Please login first."
+        });
+    }
+
+    try {
+
+        const [result] = await db.promise().query(
+            `
+            SELECT COUNT(*) AS unread
+            FROM messages
+            WHERE receiver_id = ?
+            AND is_read = 0
+            `,
+            [req.session.user.id]
+        );
+
+        res.json({
+            success: true,
+            unread: result[0].unread
+        });
+
+    } catch (error) {
+
+        console.error("Unread messages error:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Could not load unread count."
+        });
+
+    }
+
+});
+// ========================================
+// GET MESSAGES WITH A USER
+// ========================================
+
+app.get("/api/messages/:userId", async (req, res) => {
+
+    if (!req.session || !req.session.user) {
+        return res.status(401).json({
+            success: false,
+            message: "Please login first."
+        });
+    }
+
+    const currentUserId = Number(req.session.user.id);
+    const otherUserId = Number(req.params.userId);
+
+    if (
+        !Number.isInteger(otherUserId) ||
+        otherUserId < 1 ||
+        otherUserId === currentUserId
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid user ID."
+        });
+    }
+
+    try {
+
+        // ========================================
+        // GET USER INFORMATION
+        // ========================================
+
+        const [users] = await db.promise().query(
+            `SELECT
+                id,
+                name,
+                username,
+                profile_image,
+                last_seen,
+                CASE
+                    WHEN last_seen >= NOW() - INTERVAL 60 SECOND
+                    THEN 1
+                    ELSE 0
+                END AS is_online
+             FROM users
+             WHERE id = ?`,
+            [otherUserId]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found."
+            });
+        }
+
+
+        // ========================================
+        // MARK MESSAGES AS DELIVERED
+        // ========================================
+
+        const [pendingDelivery] = await db.promise().query(
+            `SELECT id
+             FROM messages
+             WHERE sender_id = ?
+             AND receiver_id = ?
+             AND is_delivered = 0`,
+            [otherUserId, currentUserId]
+        );
+
+        if (pendingDelivery.length > 0) {
+
+            const deliveredIds = pendingDelivery.map(msg => msg.id);
+
+            await db.promise().query(
+                `UPDATE messages
+                 SET is_delivered = 1,
+                     delivered_at = NOW()
+                 WHERE sender_id = ?
+                 AND receiver_id = ?
+                 AND is_delivered = 0`,
+                [otherUserId, currentUserId]
+            );
+
+            if (io) {
+                io.to(`user:${otherUserId}`).emit("message:delivered", {
+                    messageIds: deliveredIds,
+                    byUserId: currentUserId
+                });
+            }
+
+        }
+
+
+        // ========================================
+        // MARK MESSAGES AS SEEN
+        // ========================================
+
+        const [pendingSeen] = await db.promise().query(
+            `SELECT id
+             FROM messages
+             WHERE sender_id = ?
+             AND receiver_id = ?
+             AND is_read = 0`,
+            [otherUserId, currentUserId]
+        );
+
+        if (pendingSeen.length > 0) {
+
+            const seenIds = pendingSeen.map(msg => msg.id);
+
+            await db.promise().query(
+                `UPDATE messages
+                 SET is_read = 1
+                 WHERE sender_id = ?
+                 AND receiver_id = ?
+                 AND is_read = 0`,
+                [otherUserId, currentUserId]
+            );
+
+            if (io) {
+                io.to(`user:${otherUserId}`).emit("message:seen", {
+                    messageIds: seenIds,
+                    byUserId: currentUserId
+                });
+            }
+
+        }
+
+
+        // ========================================
+        // FETCH CONVERSATION MESSAGES
+        // ========================================
+
+        const [messages] = await db.promise().query(
+            `SELECT
+                id,
+                sender_id,
+                receiver_id,
+                message,
+                image,
+                is_read,
+                is_delivered,
+                delivered_at,
+                created_at
+             FROM messages
+             WHERE
+                (sender_id = ? AND receiver_id = ?)
+                OR
+                (sender_id = ? AND receiver_id = ?)
+             ORDER BY created_at ASC, id ASC`,
+            [
+                currentUserId,
+                otherUserId,
+                otherUserId,
+                currentUserId
+            ]
+        );
+
+
+        res.json({
+            success: true,
+            user: users[0],
+            messages
+        });
+
+    } catch (error) {
+
+        console.error("Load messages error:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Could not load messages."
+        });
+
+    }
+
+});
+// ========================================
+// SEND MESSAGE - REAL TIME SOCKET.IO
+// ========================================
+
+app.post(
+    "/api/messages",
+    upload.single("image"),
+    validateUploadedImage,
+    async (req, res) => {
+
+        let uploadedFile = req.file;
+
+        try {
+
+            // Check login
+            if (!req.session || !req.session.user || !req.session.user.id) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Please login first."
+                });
+            }
+
+            const senderId = Number(req.session.user.id);
+            const receiverId = Number(req.body.receiver_id);
+            const message = (req.body.message || "").trim();
+
+            // Validate receiver
+            if (
+                !Number.isInteger(receiverId) ||
+                receiverId < 1
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid receiver."
+                });
+            }
+
+            // Check message content
+            if (!message && !uploadedFile) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Write a message or attach an image."
+                });
+            }
+
+            if (message.length > 2000) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Message is too long."
+                });
+            }
+
+            if (receiverId === senderId) {
+                return res.status(400).json({
+                    success: false,
+                    message: "You cannot message yourself."
+                });
+            }
+
+            // Check receiver exists
+            const [users] = await db.promise().query(
+                "SELECT id FROM users WHERE id = ?",
+                [receiverId]
+            );
+
+            if (users.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: "User not found."
+                });
+            }
+
+            // Get sender information
+            const [senders] = await db.promise().query(
+                `SELECT id, name, username, profile_image
+                 FROM users
+                 WHERE id = ?`,
+                [senderId]
+            );
+
+            const sender = senders[0];
+
+            // Image path
+            const imagePath = uploadedFile
+                ? `/uploads/${uploadedFile.filename}`
+                : null;
+
+            // Save message in database
+            const [result] = await db.promise().query(
+                `INSERT INTO messages
+                (sender_id, receiver_id, message, image)
+                VALUES (?, ?, ?, ?)`,
+                [senderId, receiverId, message, imagePath]
+            );
+
+            const messageId = result.insertId;
+
+            // Fetch saved message
+            const [savedMessages] = await db.promise().query(
+                `SELECT
+                    id,
+                    sender_id,
+                    receiver_id,
+                    message,
+                    image,
+                    is_read,
+                    is_delivered,
+                    created_at
+                 FROM messages
+                 WHERE id = ?`,
+                [messageId]
+            );
+
+            const newMessage = {
+                ...savedMessages[0],
+                sender_name: sender.name,
+                sender_username: sender.username,
+                sender_profile_image: sender.profile_image
+            };
+
+            // ========================================
+            // REAL-TIME MESSAGE DELIVERY
+            // ========================================
+
+            if (io) {
+                io.to(`user:${receiverId}`).emit(
+                    "message:new",
+                    newMessage
+                );
+            }
+
+            // ========================================
+            // CREATE MESSAGE NOTIFICATION
+            // ========================================
+
+            try {
+
+                const [notificationResult] = await db.promise().query(
+                    `INSERT INTO notifications
+                    (user_id, actor_id, type, post_id, message, message_id)
+                    VALUES (?, ?, 'message', NULL, ?, ?)`,
+                    [
+                        receiverId,
+                        senderId,
+                        `${sender.name} sent you a message.`,
+                        messageId
+                    ]
+                );
+
+                // Notify recipient instantly
+                if (io) {
+                    io.to(`user:${receiverId}`).emit(
+                        "notification:new",
+                        {
+                            id: notificationResult.insertId,
+                            user_id: receiverId,
+                            actor_id: senderId,
+                            type: "message",
+                            message: `${sender.name} sent you a message.`,
+                            message_id: messageId,
+                            is_read: 0
+                        }
+                    );
+                }
+
+            } catch (notificationError) {
+
+                console.error(
+                    "Message notification error:",
+                    notificationError
+                );
+
+            }
+
+            // Send response to sender
+            res.json({
+                success: true,
+                message: "Message sent successfully!",
+                messageId: messageId,
+                image: imagePath,
+                newMessage: newMessage
+            });
+
+        } catch (error) {
+
+            console.error("Send message error:", error);
+
+            // Remove uploaded image if saving failed
+            if (uploadedFile) {
+                fs.unlink(uploadedFile.path, () => {});
+            }
+
+            res.status(500).json({
+                success: false,
+                message: "Could not send message."
+            });
+
+        }
+
+    }
+);
+
+
+// ==========================================
+// USER ONLINE / OFFLINE PRESENCE
+// ==========================================
+
+// Update current user's last seen
+app.post("/api/presence/heartbeat", async (req, res) => {
+    try {
+        // Check whether the user is logged in
+        if (!req.session || !req.session.user || !req.session.user.id) {
+            return res.status(401).json({
+                success: false,
+                message: "Not logged in"
+            });
+        }
+
+        const userId = Number(req.session.user.id);
+
+        await db.promise().query(
+            "UPDATE users SET last_seen = NOW() WHERE id = ?",
+            [userId]
+        );
+
+        res.json({
+            success: true,
+            message: "Presence updated"
+        });
+
+    } catch (error) {
+        console.error("Presence heartbeat error:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Could not update presence"
+        });
+    }
+});
+
+// Get another user's online status
+app.get("/api/users/:userId/presence", async (req, res) => {
+    try {
+        if (!req.session.user.id) {
+            return res.status(401).json({
+                success: false
+            });
+        }
+
+        const userId = parseInt(req.params.userId);
+
+        const [users] = await db.promise().query(
+            `SELECT
+                last_seen,
+                CASE
+                    WHEN last_seen >= NOW() - INTERVAL 60 SECOND
+                    THEN 1
+                    ELSE 0
+                END AS is_online
+            FROM users
+            WHERE id = ?`,
+            [userId]
+        );
+
+        if (!users.length) {
+            return res.status(404).json({
+                success: false
+            });
+        }
+
+        res.json({
+            success: true,
+            is_online: Boolean(users[0].is_online),
+            last_seen: users[0].last_seen
+        });
+
+    } catch (error) {
+        console.error("Presence status error:", error);
+
+        res.status(500).json({
+            success: false
+        });
+    }
+});
+// ==========================================
+// LIVE TYPING INDICATOR
+// ==========================================
+
+// Start or stop typing
+app.post("/api/messages/typing", async (req, res) => {
+try {
+if (!req.session.user) {
+return res.status(401).json({
+success: false,
+message: "Please login first."
+});
+}
+
+
+    const userId = Number(req.session.user.id);
+    const receiverId = Number(req.body.receiver_id);
+    const isTyping = Boolean(req.body.is_typing);
+
+    if (
+        !Number.isInteger(receiverId) ||
+        receiverId < 1 ||
+        receiverId === userId
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid receiver."
+        });
+    }
+
+    if (isTyping) {
+        await db.promise().query(
+            `INSERT INTO message_typing
+            (user_id, receiver_id)
+            VALUES (?, ?)
+            ON DUPLICATE KEY UPDATE updated_at = CURRENT_TIMESTAMP`,
+            [userId, receiverId]
+        );
+    } else {
+        await db.promise().query(
+            `DELETE FROM message_typing
+            WHERE user_id = ? AND receiver_id = ?`,
+            [userId, receiverId]
+        );
+    }
+
+    res.json({
+        success: true
+    });
+
+} catch (error) {
+    console.error("Typing update error:", error);
+
+    res.status(500).json({
+        success: false,
+        message: "Could not update typing status."
+    });
+}
+
+
+});
+
+
+// Check whether the other person is typing
+app.get("/api/messages/typing/:userId", async (req, res) => {
+try {
+if (!req.session.user) {
+return res.status(401).json({
+success: false,
+message: "Please login first."
+});
+}
+
+
+    const otherUserId = Number(req.params.userId);
+    const currentUserId = Number(req.session.user.id);
+
+    if (!Number.isInteger(otherUserId) || otherUserId < 1) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid user ID."
+        });
+    }
+
+    const [rows] = await db.promise().query(
+        `SELECT id
+         FROM message_typing
+         WHERE user_id = ?
+         AND receiver_id = ?
+         AND updated_at >= NOW() - INTERVAL 8 SECOND`,
+        [otherUserId, currentUserId]
+    );
+
+    res.json({
+        success: true,
+        is_typing: rows.length > 0
+    });
+
+} catch (error) {
+    console.error("Typing check error:", error);
+
+    res.status(500).json({
+        success: false,
+        message: "Could not check typing status."
+    });
+}
+
+
+});
+
+// ======================================================
+// SOCKET.IO SERVER START
+// ======================================================
+
+const server = http.createServer(app);
+
+io = new Server(server);
+
+// Share Express login sessions with Socket.IO
+io.engine.use(sessionMiddleware);
+
+// Authenticate socket connections
+io.use((socket, next) => {
+
+    const userSession = socket.request.session;
+
+    if (!userSession || !userSession.user || !userSession.user.id) {
+
+        return next(new Error("Unauthorized"));
+
+    }
+
+    next();
+
+});
+
+// Handle connected users
+io.on("connection", (socket) => {
+
+    const userId = Number(socket.request.session.user.id);
+
+    // Each user gets a private room
+    socket.join(`user:${userId}`);
+
+    console.log(`🟢 Socket connected: User ${userId}`);
+
+    socket.on("disconnect", () => {
+
+        console.log(`🔴 Socket disconnected: User ${userId}`);
+
+    });
+
+});
+
+// Start server
+server.listen(3000, () => {
 
     console.log(
-        "BariraSocial server is running on http://localhost:3000"
+        "🚀 BariraSocial server is running on http://localhost:3000"
     );
 
 });

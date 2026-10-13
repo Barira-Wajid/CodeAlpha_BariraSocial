@@ -19,6 +19,7 @@
     "express-session": "^1.19.0",
     "file-type": "^22.1.1",
     "multer": "^2.4.0",
-    "mysql2": "^3.24.4"
+    "mysql2": "^3.24.4",
+    "socket.io": "^4.8.4"
   }
 }
