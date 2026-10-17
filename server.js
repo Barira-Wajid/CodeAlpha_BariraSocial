@@ -1656,8 +1656,7 @@ app.put(
 // START SERVER
 // ========================================
 
-const PORT = 3000;
-
+const PORT = process.env.PORT || 3000;
 // ======================================================
 // YOUR EXISTING ROUTES ABOVE
 // ======================================================
@@ -2606,7 +2605,7 @@ app.post("/api/presence/heartbeat", async (req, res) => {
 // Get another user's online status
 app.get("/api/users/:userId/presence", async (req, res) => {
     try {
-        if (!req.session.user.id) {
+      if (!req.session || !req.session.user || !req.session.user.id) {
             return res.status(401).json({
                 success: false
             });
@@ -2802,7 +2801,7 @@ io.on("connection", (socket) => {
 });
 
 // Start server
-server.listen(3000, () => {
+server.listen(PORT, () => {
 
     console.log(
         "🚀 BariraSocial server is running on http://localhost:3000"

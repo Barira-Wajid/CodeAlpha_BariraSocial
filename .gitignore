@@ -1,4 +1,8 @@
-.env
 node_modules/
-uploads/
+.env
+uploads/*
+!.gitkeep
+
+barira_social_db.sql
+import-db.js
 reset-iqra-password.js
