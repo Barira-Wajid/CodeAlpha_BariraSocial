@@ -61,6 +61,8 @@ if (!process.env.SESSION_SECRET) {
 // SESSION
 // ========================================
 
+app.set("trust proxy", 1);
+
 const sessionMiddleware = session({
 
     secret: process.env.SESSION_SECRET,
@@ -75,14 +77,15 @@ const sessionMiddleware = session({
 
         httpOnly: true,
 
-        sameSite: "lax"
+        sameSite: "lax",
+
+        secure: process.env.NODE_ENV === "production"
 
     }
 
 });
 
 app.use(sessionMiddleware);
-
 // ========================================
 // STATIC FILES
 // ========================================
